@@ -9,3 +9,7 @@ kube.yml
 docker-compose-dev.yaml
 
 example-fragment.js
+
+.*
+
+CLAUDE.md

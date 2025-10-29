@@ -17,6 +17,7 @@ const SnippetStorage: React.FC = () => {
     snippets,
     isLoading,
     addSnippet,
+    addSnippetsBatch,
     updateSnippet,
     removeSnippet,
     reloadSnippets,
@@ -187,6 +188,7 @@ const SnippetStorage: React.FC = () => {
         onSettingsChange={updateSettings}
         snippets={snippets}
         addSnippet={addSnippet}
+        addSnippetsBatch={addSnippetsBatch}
         reloadSnippets={reloadSnippets}
         isPublicView={false}
       />

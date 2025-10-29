@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, useMemo, useCallback } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface Section {
@@ -59,13 +59,6 @@ const BaseDropdown = forwardRef<BaseDropdownRef, BaseDropdownProps>(({
     setInternalValue(value);
   }, [value]);
 
-  const getAllItems = (sections: Section[]): string[] => {
-    return sections.reduce(
-      (acc: string[], section) => [...acc, ...section.items],
-      []
-    );
-  };
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -120,14 +113,24 @@ const BaseDropdown = forwardRef<BaseDropdownRef, BaseDropdownProps>(({
     setHighlightedIndex(-1);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  // Memoize sections to avoid recalculating on every render
+  const sections = useMemo(() => {
+    return getSections(internalValue);
+  }, [internalValue, getSections]);
+
+  const allItems = useMemo(() => {
+    return sections.reduce(
+      (acc: string[], section) => [...acc, ...section.items],
+      []
+    );
+  }, [sections]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (onKeyDown) {
       onKeyDown(e);
       if (e.defaultPrevented) return;
     }
 
-    const sections = getSections(internalValue);
-    const allItems = getAllItems(sections);
     const totalItems = allItems.length;
 
     switch (e.key) {
@@ -177,9 +180,8 @@ const BaseDropdown = forwardRef<BaseDropdownRef, BaseDropdownProps>(({
         setInternalValue(value);
         break;
     }
-  };
+  }, [onKeyDown, allItems, isOpen, highlightedIndex, sections, value, handleOptionClick]);
 
-  const sections = getSections(internalValue);
   let currentIndex = -1;
 
   return (

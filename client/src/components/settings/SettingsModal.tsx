@@ -53,11 +53,14 @@ export interface SettingsModalProps {
   };
   onSettingsChange: (newSettings: SettingsModalProps["settings"]) => void;
   snippets: Snippet[];
-  addSnippet: (
+  addSnippet?: (
     snippet: Omit<Snippet, "id" | "updated_at">,
     toast: boolean
   ) => Promise<Snippet>;
-  reloadSnippets: () => void;
+  addSnippetsBatch?: (
+    snippets: Omit<Snippet, "id" | "updated_at">[]
+  ) => Promise<{ succeeded: number; failed: number; errors: any[] }>;
+  reloadSnippets?: () => void;
   isPublicView: boolean;
 }
 
@@ -67,8 +70,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   settings,
   onSettingsChange,
   snippets,
-  addSnippet,
-  reloadSnippets,
+  addSnippet: _addSnippet,
+  addSnippetsBatch,
+  reloadSnippets: _reloadSnippets,
   isPublicView,
 }) => {
   const [compactView, setCompactView] = useState(settings.compactView);
@@ -177,35 +181,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
       setImportProgress(progress);
 
-      for (const snippet of importData.snippets) {
-        try {
-          await addSnippet(snippet, false);
-          progress.succeeded += 1;
-        } catch (error) {
-          progress.failed += 1;
-          progress.errors.push({
-            title: snippet.title,
-            error: error instanceof Error ? error.message : "Unknown error",
-          });
-          console.error(`Failed to import snippet "${snippet.title}":`, error);
+      // Use batch import to avoid performance degradation (single re-render)
+      try {
+        if (addSnippetsBatch) {
+          await addSnippetsBatch(importData.snippets);
+          progress.succeeded = importData.snippets.length;
+          progress.current = importData.snippets.length;
+
+          addToast(
+            `Successfully imported ${progress.succeeded} snippets`,
+            "success"
+          );
+        } else {
+          throw new Error("Import not available in public view");
         }
+      } catch (error) {
+        // Individual errors during batch import
+        progress.failed = importData.snippets.length;
+        progress.current = importData.snippets.length;
+        progress.errors.push({
+          title: "Import failed",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
 
-        progress.current += 1;
-        setImportProgress({ ...progress });
-      }
-
-      if (progress.failed === 0) {
         addToast(
-          `Successfully imported ${progress.succeeded} snippets`,
-          "success"
-        );
-        reloadSnippets();
-      } else {
-        addToast(
-          `Imported ${progress.succeeded} snippets, ${progress.failed} failed. Check console for details.`,
-          "warning"
+          `Failed to import snippets. Check console for details.`,
+          "error"
         );
       }
+
+      setImportProgress({ ...progress });
     } catch (error) {
       console.error("Import error:", error);
       addToast(

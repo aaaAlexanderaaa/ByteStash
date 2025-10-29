@@ -249,6 +249,27 @@ export const useSnippets = () => {
     [addToast, handleAuthError]
   );
 
+  // Batch import snippets to avoid performance degradation during import
+  const addSnippetsBatch = useCallback(
+    async (snippetsData: Omit<Snippet, "id" | "updated_at">[]) => {
+      try {
+        const newSnippets: Snippet[] = [];
+        for (const snippetData of snippetsData) {
+          const newSnippet = await createSnippet(snippetData);
+          newSnippets.push(newSnippet);
+        }
+        // Single state update for all snippets (prevents O(n²) re-renders)
+        setSnippets((prevSnippets) => [...prevSnippets, ...newSnippets]);
+        return { succeeded: newSnippets.length, failed: 0, errors: [] };
+      } catch (error: any) {
+        console.error("Error creating snippets:", error);
+        handleAuthError(error);
+        throw error;
+      }
+    },
+    [addToast, handleAuthError]
+  );
+
   useEffect(() => {
     mountedRef.current = true;
 
@@ -266,6 +287,7 @@ export const useSnippets = () => {
       snippets,
       isLoading,
       addSnippet,
+      addSnippetsBatch,
       updateSnippet,
       removeSnippet,
       permanentDeleteSnippet,
@@ -279,6 +301,7 @@ export const useSnippets = () => {
       snippets,
       isLoading,
       addSnippet,
+      addSnippetsBatch,
       updateSnippet,
       removeSnippet,
       permanentDeleteSnippet,

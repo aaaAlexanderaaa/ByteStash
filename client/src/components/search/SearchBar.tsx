@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, X } from 'lucide-react';
 import BaseDropdown, { BaseDropdownRef } from '../common/dropdowns/BaseDropdown';
 import { IconButton } from '../common/buttons/IconButton';
@@ -22,12 +22,25 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Search snippets... (Type # to see all available categories)"
 }) => {
   const [inputValue, setInputValue] = useState(value);
+  const [debouncedValue, setDebouncedValue] = useState(value);
   const lastValueRef = useRef(value);
   const inputRef = useRef<BaseDropdownRef>(null);
+
+  // Debounce local state changes before notifying parent
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (debouncedValue !== value) {
+        onChange(debouncedValue);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [debouncedValue, value, onChange]);
 
   useEffect(() => {
     if (value !== lastValueRef.current) {
       setInputValue(value);
+      setDebouncedValue(value);
       lastValueRef.current = value;
     }
   }, [value]);
@@ -42,12 +55,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     },
   });
 
-  const getSections = (searchTerm: string) => {
+  // Memoize getSections to prevent unnecessary recalculations
+  const getSections = useCallback((searchTerm: string) => {
     if (!searchTerm.includes('#')) return [];
 
     const term = searchTerm.slice(searchTerm.lastIndexOf('#') + 1).trim().toLowerCase();
     const sections = [];
-    
+
     const availableCategories = existingCategories.filter(
       cat => !selectedCategories.includes(cat.toLowerCase())
     );
@@ -71,17 +85,18 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     }
 
     return sections;
-  };
+  }, [existingCategories, selectedCategories]);
 
   const handleSelect = (option: string) => {
-    const newCategory = option.startsWith('Add new:') 
-      ? option.slice(9).trim() 
+    const newCategory = option.startsWith('Add new:')
+      ? option.slice(9).trim()
       : option;
 
     const hashtagIndex = inputValue.lastIndexOf('#');
     if (hashtagIndex !== -1) {
       const newValue = inputValue.substring(0, hashtagIndex).trim();
       setInputValue(newValue);
+      setDebouncedValue(newValue);
       onChange(newValue);
     }
 
@@ -95,7 +110,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         value={inputValue}
         onChange={(value) => {
           setInputValue(value);
-          onChange(value);
+          setDebouncedValue(value);
+          // Don't call onChange here - let debounce handle it
         }}
         onSelect={handleSelect}
         getSections={getSections}
@@ -108,6 +124,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           icon={<X size={20} />}
         onClick={() => {
           setInputValue('');
+          setDebouncedValue('');
           onChange('');
         }}
         variant="secondary"

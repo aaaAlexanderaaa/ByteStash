@@ -152,7 +152,30 @@ const BaseSnippetStorage: React.FC<BaseSnippetStorageProps> = ({
     [snippets]
   );
 
+  // Pre-process and cache search data with Map for O(1) lookup (fixes O(n²) bug)
+  const searchIndexMap = useMemo(() => {
+    const map = new Map();
+    snippets.forEach(snippet => {
+      map.set(snippet.id, {
+        titleLower: snippet.title.toLowerCase(),
+        descriptionLower: snippet.description.toLowerCase(),
+        categoriesLower: snippet.categories.map(c => c.toLowerCase()),
+        fragments: snippet.fragments.map(frag => ({
+          fileNameLower: frag.file_name.toLowerCase(),
+          languageLower: getLanguageLabel(frag.language).toLowerCase(),
+          codeLower: includeCodeInSearch ? frag.code.toLowerCase() : null,
+        }))
+      });
+    });
+    return map;
+  }, [snippets, includeCodeInSearch]);
+
   const filteredSnippets = useMemo(() => {
+    // Early return if no filtering needed
+    if (!searchTerm && !selectedLanguage && selectedCategories.length === 0 && !showFavorites) {
+      return snippets;
+    }
+
     const result = snippets
       .filter((snippet) => {
         if (showFavorites && snippet.is_favorite !== 1) {
@@ -160,32 +183,32 @@ const BaseSnippetStorage: React.FC<BaseSnippetStorageProps> = ({
         }
 
         const search = searchTerm.toLowerCase();
+        const searchIndexItem = searchIndexMap.get(snippet.id);
+
+        if (!searchIndexItem) return false;
 
         const basicMatch =
-          snippet.title.toLowerCase().includes(search) ||
-          snippet.description.toLowerCase().includes(search);
+          !search ||
+          searchIndexItem.titleLower.includes(search) ||
+          searchIndexItem.descriptionLower.includes(search);
 
-        const fragmentMatch = snippet.fragments.some(
-          (fragment) =>
-            fragment.file_name.toLowerCase().includes(search) ||
-            getLanguageLabel(fragment.language)
-              .toLowerCase()
-              .includes(search) ||
-            (includeCodeInSearch &&
-              fragment.code.toLowerCase().includes(search))
-        );
+        const fragmentMatch =
+          !search ||
+          searchIndexItem.fragments.some((frag: any) =>
+            frag.fileNameLower.includes(search) ||
+            frag.languageLower.includes(search) ||
+            (includeCodeInSearch && frag.codeLower && frag.codeLower.includes(search))
+          );
 
         const languageMatch =
-          selectedLanguage === "" ||
-          snippet.fragments.some(
-            (fragment) =>
-              getLanguageLabel(fragment.language).toLowerCase() ===
-              selectedLanguage.toLowerCase()
+          !selectedLanguage ||
+          searchIndexItem.fragments.some(
+            (frag: any) => frag.languageLower === selectedLanguage.toLowerCase()
           );
 
         const categoryMatch =
           selectedCategories.length === 0 ||
-          selectedCategories.every((cat) => snippet.categories.includes(cat));
+          selectedCategories.every((cat) => searchIndexItem.categoriesLower.includes(cat.toLowerCase()));
 
         return (basicMatch || fragmentMatch) && languageMatch && categoryMatch;
       })
@@ -222,6 +245,7 @@ const BaseSnippetStorage: React.FC<BaseSnippetStorageProps> = ({
   }, [
     snippets,
     searchTerm,
+    searchIndexMap,
     selectedLanguage,
     includeCodeInSearch,
     sortOrder,
@@ -312,6 +336,17 @@ const BaseSnippetStorage: React.FC<BaseSnippetStorageProps> = ({
         showFavorites={showFavorites}
         handleShowFavorites={handleShowFavorites}
       />
+
+      {/* Search results count */}
+      {(searchTerm || selectedLanguage || selectedCategories.length > 0 || showFavorites) && (
+        <div className="mb-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+          {filteredSnippets.length} {filteredSnippets.length === 1 ? 'snippet' : 'snippets'}
+          {searchTerm && ` matching "${searchTerm}"`}
+          {selectedLanguage && ` in ${selectedLanguage}`}
+          {selectedCategories.length > 0 && ` in ${selectedCategories.join(', ')}`}
+          {showFavorites && ' (favorites)'}
+        </div>
+      )}
 
       {isRecycleView && (
         <div className="mb-6 space-y-3">
