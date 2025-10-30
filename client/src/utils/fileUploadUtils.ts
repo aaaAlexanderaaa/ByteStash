@@ -60,8 +60,13 @@ export const ACCEPTED_FILE_EXTENSIONS = [
   ".yml",
   ".toml",
   ".ini",
-  // SQL
+  // SQL and query languages
   ".sql",
+  ".psql",
+  ".spl",
+  ".splunk",
+  ".es",
+  ".esql",
   // Markup
   ".md",
   ".markdown",
@@ -70,13 +75,21 @@ export const ACCEPTED_FILE_EXTENSIONS = [
   ".dockerfile",
   ".gitignore",
   ".makefile",
-  // Other
+  // Other programming languages
   ".r",
   ".R",
   ".m",
   ".pl",
   ".lua",
   ".vim",
+  ".fs",
+  ".fsx",
+  ".clj",
+  ".cljs",
+  ".ex",
+  ".exs",
+  ".hs",
+  ".proto",
   ".txt",
 ].join(",");
 
@@ -142,10 +155,10 @@ export const detectLanguageFromFilename = (filename: string): string => {
     swift: "swift",
 
     // Shell scripts
-    sh: "shell",
+    sh: "bash",
     bash: "bash",
-    zsh: "shell",
-    fish: "shell",
+    zsh: "bash",
+    fish: "fish",
     ps1: "powershell",
 
     // Data formats
@@ -156,8 +169,13 @@ export const detectLanguageFromFilename = (filename: string): string => {
     toml: "toml",
     ini: "ini",
 
-    // SQL
+    // SQL and query languages
     sql: "sql",
+    psql: "pgsql",
+    spl: "spl",
+    splunk: "spl",
+    es: "esql",
+    esql: "esql",
 
     // Markup
     md: "markdown",
@@ -176,6 +194,14 @@ export const detectLanguageFromFilename = (filename: string): string => {
     pl: "perl",
     lua: "lua",
     vim: "vim",
+    fs: "fsharp",
+    fsx: "fsharp",
+    clj: "clojure",
+    cljs: "clojure",
+    ex: "elixir",
+    exs: "elixir",
+    hs: "haskell",
+    proto: "protobuf",
     txt: "plaintext",
   };
 

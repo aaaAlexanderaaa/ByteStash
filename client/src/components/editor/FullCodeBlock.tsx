@@ -7,7 +7,7 @@ import {
 } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import {
   getLanguageLabel,
-  getMonacoLanguage,
+  getPrismLanguage,
 } from "../../utils/language/languageUtils";
 import CopyButton from "../common/buttons/CopyButton";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -157,7 +157,7 @@ export const FullCodeBlock: React.FC<FullCodeBlockProps> = ({
         ) : (
           <div ref={containerRef} style={{ maxHeight: "500px" }}>
             <SyntaxHighlighter
-              language={getMonacoLanguage(language)}
+              language={getPrismLanguage(language)}
               style={customStyle}
               showLineNumbers={showLineNumbers}
               wrapLines={true}

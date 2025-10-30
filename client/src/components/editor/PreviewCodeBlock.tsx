@@ -7,7 +7,7 @@ import {
 } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import {
   getLanguageLabel,
-  getMonacoLanguage,
+  getPrismLanguage,
 } from "../../utils/language/languageUtils";
 import CopyButton from "../common/buttons/CopyButton";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -168,7 +168,7 @@ export const PreviewCodeBlock: React.FC<PreviewCodeBlockProps> = ({
         ) : (
           <div className="preview-wrapper">
             <SyntaxHighlighter
-              language={getMonacoLanguage(language)}
+              language={getPrismLanguage(language)}
               style={customStyle}
               showLineNumbers={showLineNumbers}
               wrapLines={true}
