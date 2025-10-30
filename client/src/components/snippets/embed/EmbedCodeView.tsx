@@ -7,7 +7,7 @@ import {
 } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import {
   getLanguageLabel,
-  getMonacoLanguage,
+  getPrismLanguage,
 } from "../../../utils/language/languageUtils";
 import EmbedCopyButton from "./EmbedCopyButton";
 import Admonition from "../../utils/Admonition";
@@ -175,7 +175,7 @@ export const EmbedCodeView: React.FC<EmbedCodeBlockProps> = ({
         ) : (
           <div ref={containerRef} style={{ maxHeight: "500px" }}>
             <SyntaxHighlighter
-              language={getMonacoLanguage(language)}
+              language={getPrismLanguage(language)}
               style={customStyle}
               showLineNumbers={showLineNumbers}
               wrapLines={true}

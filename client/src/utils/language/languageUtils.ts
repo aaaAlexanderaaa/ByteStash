@@ -1,6 +1,11 @@
 import { CodeFragment, Snippet } from "../../types/snippets";
 import * as monaco from "monaco-editor";
 
+// Import custom language definitions
+import { registerSplunkLanguage } from "./customLanguages/splunk";
+import { registerElasticsearchLanguage } from "./customLanguages/elasticsearch";
+import { registerFishLanguage } from "./customLanguages/fish";
+
 interface DropdownSections {
   used: string[];
   other: string[];
@@ -224,6 +229,11 @@ const LANGUAGE_MAPPING: LanguageMapping = {
     monacoAlias: "shell",
     label: "bash",
   },
+  fish: {
+    aliases: ["fish-shell", "fishrc"],
+    monacoAlias: "fish",
+    label: "fish",
+  },
   powershell: {
     aliases: [
       "ps",
@@ -247,19 +257,33 @@ const LANGUAGE_MAPPING: LanguageMapping = {
   // Database Languages
   sql: {
     aliases: [
-      "mysql",
-      "postgresql",
-      "psql",
-      "pgsql",
       "plsql",
       "tsql",
-      "mssql",
       "sqlite",
       "oracle",
-      "mariadb",
     ],
     monacoAlias: "sql",
     label: "sql",
+  },
+  mysql: {
+    aliases: ["mariadb"],
+    monacoAlias: "mysql",
+    label: "mysql",
+  },
+  pgsql: {
+    aliases: ["postgresql", "psql", "postgres"],
+    monacoAlias: "pgsql",
+    label: "postgresql",
+  },
+  redis: {
+    aliases: ["redis-cli"],
+    monacoAlias: "redis",
+    label: "redis",
+  },
+  redshift: {
+    aliases: ["aws-redshift"],
+    monacoAlias: "redshift",
+    label: "redshift",
   },
   mongodb: {
     aliases: ["mongo", "mongoose", "nosql", "mongosh"],
@@ -327,9 +351,19 @@ const LANGUAGE_MAPPING: LanguageMapping = {
     label: "xml",
   },
   toml: {
-    aliases: ["ini", "conf", "config", "cargo.toml", "poetry.toml"],
+    aliases: ["cargo.toml", "poetry.toml"],
     monacoAlias: "ini",
     label: "toml",
+  },
+  ini: {
+    aliases: ["conf", "config", "cfg", "properties"],
+    monacoAlias: "ini",
+    label: "ini",
+  },
+  protobuf: {
+    aliases: ["proto", "proto3"],
+    monacoAlias: "proto",
+    label: "protobuf",
   },
 
   // Cloud & Infrastructure
@@ -380,6 +414,51 @@ const LANGUAGE_MAPPING: LanguageMapping = {
     monacoAlias: "apex",
     label: "apex",
   },
+  fsharp: {
+    aliases: ["fs", "f#", "fsx"],
+    monacoAlias: "fsharp",
+    label: "f#",
+  },
+  clojure: {
+    aliases: ["clj", "cljs", "cljc", "edn"],
+    monacoAlias: "clojure",
+    label: "clojure",
+  },
+  scheme: {
+    aliases: ["scm", "ss", "rkt", "racket"],
+    monacoAlias: "scheme",
+    label: "scheme",
+  },
+  elixir: {
+    aliases: ["ex", "exs", "phoenix"],
+    monacoAlias: "elixir",
+    label: "elixir",
+  },
+  haskell: {
+    aliases: ["hs", "lhs"],
+    monacoAlias: "haskell",
+    label: "haskell",
+  },
+  objectivec: {
+    aliases: ["objc", "objective-c", "obj-c", "m", "mm"],
+    monacoAlias: "objective-c",
+    label: "objective-c",
+  },
+  pascal: {
+    aliases: ["pas", "delphi"],
+    monacoAlias: "pascal",
+    label: "pascal",
+  },
+  vb: {
+    aliases: ["vb.net", "vbnet", "visualbasic"],
+    monacoAlias: "vb",
+    label: "visual basic",
+  },
+  tcl: {
+    aliases: ["tcl-tk", "tk"],
+    monacoAlias: "tcl",
+    label: "tcl",
+  },
 
   // Smart Contract Languages
   solidity: {
@@ -415,6 +494,21 @@ const LANGUAGE_MAPPING: LanguageMapping = {
     aliases: ["neo4j", "neo4j-cypher"],
     monacoAlias: "cypher",
     label: "cypher",
+  },
+  spl: {
+    aliases: ["splunk", "splunk-query", "splunk-search"],
+    monacoAlias: "spl",
+    label: "splunk spl",
+  },
+  esql: {
+    aliases: ["elasticsearch", "es", "es-query", "elasticsearch-query"],
+    monacoAlias: "esql",
+    label: "elasticsearch",
+  },
+  sparql: {
+    aliases: ["rdf-query"],
+    monacoAlias: "sparql",
+    label: "sparql",
   },
 
   // Other
@@ -466,6 +560,24 @@ export const normalizeLanguage = (lang: string): string => {
 export const getMonacoLanguage = (lang: string): string => {
   const normalized = normalizeLanguage(lang);
   return LANGUAGE_MAPPING[normalized]?.monacoAlias || lang;
+};
+
+/**
+ * Get the appropriate Prism language for syntax highlighting in view mode.
+ * Custom Monaco languages (spl, esql, fish) need to map to similar Prism languages
+ * since Prism doesn't support these custom language definitions.
+ */
+export const getPrismLanguage = (lang: string): string => {
+  const monacoLang = getMonacoLanguage(lang);
+  
+  // Map custom Monaco languages to appropriate Prism fallbacks
+  const customLanguageMap: Record<string, string> = {
+    'spl': 'javascript',        // Splunk SPL -> JavaScript (similar syntax structure)
+    'esql': 'sql',              // Elasticsearch -> SQL (query language)
+    'fish': 'bash',             // Fish Shell -> Bash (shell scripting)
+  };
+  
+  return customLanguageMap[monacoLang] || monacoLang;
 };
 
 export const getLanguageLabel = (lang: string): string => {
@@ -553,6 +665,11 @@ export const configureMonaco = () => {
 
 export const initializeMonaco = () => {
   configureMonaco();
+  
+  // Register custom languages
+  registerSplunkLanguage();
+  registerElasticsearchLanguage();
+  registerFishLanguage();
 };
 
 export const getLanguagesUsage = (
