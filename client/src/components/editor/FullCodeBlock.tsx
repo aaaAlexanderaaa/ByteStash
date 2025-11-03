@@ -8,12 +8,15 @@ import {
 import {
   getLanguageLabel,
   getPrismLanguage,
+  isCustomLanguage,
+  getMonacoLanguage,
 } from "../../utils/language/languageUtils";
 import CopyButton from "../common/buttons/CopyButton";
 import { useTheme } from "../../contexts/ThemeContext";
 import RawButton from "../common/buttons/RawButton";
 import Admonition from "../utils/Admonition";
 import { flattenToText } from "../../utils/markdownUtils";
+import { CustomSyntaxHighlighter } from "./CustomSyntaxHighlighter";
 
 export interface FullCodeBlockProps {
   code: string;
@@ -153,6 +156,19 @@ export const FullCodeBlock: React.FC<FullCodeBlockProps> = ({
             >
               {code}
             </ReactMarkdown>
+          </div>
+        ) : isCustomLanguage(language) ? (
+          <div ref={containerRef} style={{ maxHeight: "500px", overflow: "auto" }}>
+            <CustomSyntaxHighlighter
+              code={code}
+              language={getMonacoLanguage(language) as 'spl' | 'esql' | 'fish'}
+              showLineNumbers={showLineNumbers}
+              customStyle={{
+                minHeight: highlighterHeight,
+                maxHeight: "500px",
+                borderRadius: "0.5rem",
+              }}
+            />
           </div>
         ) : (
           <div ref={containerRef} style={{ maxHeight: "500px" }}>

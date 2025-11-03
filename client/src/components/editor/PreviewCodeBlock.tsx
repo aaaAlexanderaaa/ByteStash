@@ -8,12 +8,15 @@ import {
 import {
   getLanguageLabel,
   getPrismLanguage,
+  isCustomLanguage,
+  getMonacoLanguage,
 } from "../../utils/language/languageUtils";
 import CopyButton from "../common/buttons/CopyButton";
 import { useTheme } from "../../contexts/ThemeContext";
 import RawButton from "../common/buttons/RawButton";
 import Admonition from "../utils/Admonition";
 import { flattenToText } from "../../utils/markdownUtils";
+import { CustomSyntaxHighlighter } from "./CustomSyntaxHighlighter";
 
 interface PreviewCodeBlockProps {
   code: string;
@@ -164,6 +167,20 @@ export const PreviewCodeBlock: React.FC<PreviewCodeBlockProps> = ({
             >
               {truncatedCode}
             </ReactMarkdown>
+          </div>
+        ) : isCustomLanguage(language) ? (
+          <div className="preview-wrapper" style={{ maxHeight: visibleHeight, overflow: "hidden" }}>
+            <CustomSyntaxHighlighter
+              code={truncatedCode}
+              language={getMonacoLanguage(language) as 'spl' | 'esql' | 'fish'}
+              showLineNumbers={showLineNumbers}
+              customStyle={{
+                maxHeight: visibleHeight,
+                minHeight: visibleHeight,
+                borderRadius: "0.5rem",
+                overflow: "hidden",
+              }}
+            />
           </div>
         ) : (
           <div className="preview-wrapper">

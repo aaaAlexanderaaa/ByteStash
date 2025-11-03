@@ -1,8 +1,12 @@
 import * as monaco from 'monaco-editor';
+import { splunkDefinition } from './languageDefinitions';
 
 /**
  * Splunk SPL (Search Processing Language) syntax highlighting
  * Provides syntax highlighting for Splunk queries and search commands
+ * 
+ * NOTE: Language definitions (keywords, functions, etc.) are imported from
+ * languageDefinitions.ts to maintain a Single Source of Truth (SSOT).
  */
 
 export const splunkLanguageConfig: monaco.languages.ILanguageExtensionPoint = {
@@ -15,60 +19,11 @@ export const splunkMonarchLanguage: monaco.languages.IMonarchLanguage = {
   defaultToken: '',
   tokenPostfix: '.spl',
   
-  // Splunk search commands
-  keywords: [
-    'search', 'stats', 'eval', 'where', 'table', 'sort', 'head', 'tail',
-    'fields', 'dedup', 'rename', 'rex', 'transaction', 'chart', 'timechart',
-    'top', 'rare', 'streamstats', 'eventstats', 'bin', 'bucket', 'return',
-    'append', 'appendcols', 'appendpipe', 'join', 'lookup', 'inputlookup',
-    'outputlookup', 'makeresults', 'map', 'foreach', 'if', 'case', 'coalesce',
-    'mvexpand', 'spath', 'xmlkv', 'extract', 'multikv', 'makemv', 'nomv',
-    'replace', 'fillnull', 'filldown', 'makecontinuous', 'autoregress',
-    'delta', 'trendline', 'outlier', 'cluster', 'kmeans', 'anomalies',
-    'predict', 'x11', 'timewrap', 'untable', 'xyseries', 'addinfo',
-    'addtotals', 'addcoltotals', 'accum', 'strcat', 'convert', 'format',
-    'mvcombine', 'mvzip', 'reverse', 'sendemail', 'collect', 'overlap',
-    'selfjoin', 'set', 'diff', 'union', 'metadata', 'typelearner', 'typer'
-  ],
-  
-  // Logical and comparison operators
-  operators: [
-    'AND', 'OR', 'NOT', 'XOR', 'IN', 'LIKE',
-    '=', '!=', '<', '>', '<=', '>=', '==', '<>'
-  ],
-  
-  // Statistical and evaluation functions
-  functions: [
-    // Aggregate functions
-    'avg', 'count', 'dc', 'distinct_count', 'earliest', 'earliest_time',
-    'estdc', 'estdc_error', 'exactperc', 'first', 'last', 'latest',
-    'latest_time', 'list', 'max', 'mean', 'median', 'min', 'mode',
-    'perc', 'percentile', 'range', 'rate', 'stdev', 'stdevp', 'sum',
-    'sumsq', 'upperperc', 'values', 'var', 'varp',
-    
-    // String functions
-    'substr', 'len', 'lower', 'upper', 'trim', 'ltrim', 'rtrim', 'replace',
-    'split', 'spath', 'urldecode', 'tostring', 'printf', 'tonumber',
-    
-    // Time functions
-    'now', 'time', 'relative_time', 'strftime', 'strptime',
-    
-    // Math functions
-    'abs', 'ceil', 'floor', 'round', 'sqrt', 'exp', 'ln', 'log', 'pow',
-    'exact', 'random', 'sigfig',
-    
-    // Eval functions
-    'if', 'case', 'match', 'like', 'searchmatch', 'cidrmatch', 'validate',
-    'mvcount', 'mvindex', 'mvfilter', 'mvfind', 'mvjoin', 'mvappend',
-    'mvdedup', 'mvsort', 'mvzip', 'commands', 'typeof', 'isnull', 'isnotnull',
-    'isnum', 'isint', 'isstr', 'isbool', 'coalesce', 'null', 'nullif', 'true', 'false'
-  ],
-  
-  // Field modifiers and special terms
-  builtins: [
-    'as', 'by', 'over', 'span', 'limit', 'useother', 'usenull',
-    'cont', 'bins', 'start', 'end', 'aligntime', 'dedup_splitvals'
-  ],
+  // Import from SSOT (languageDefinitions.ts)
+  keywords: splunkDefinition.keywords,
+  operators: [...splunkDefinition.operators, ...splunkDefinition.comparisonOperators, '=', '!=', '<', '>', '<=', '>=', '==', '<>'],
+  functions: splunkDefinition.functions,
+  builtins: splunkDefinition.builtins,
   
   symbols: /[=><!~?:&|+\-*\/\^%]+/,
   

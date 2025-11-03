@@ -1,8 +1,12 @@
 import * as monaco from 'monaco-editor';
+import { fishDefinition } from './languageDefinitions';
 
 /**
  * Fish Shell syntax highlighting
  * Provides syntax highlighting for Fish (Friendly Interactive Shell) scripts
+ * 
+ * NOTE: Language definitions (keywords, builtins, etc.) are imported from
+ * languageDefinitions.ts to maintain a Single Source of Truth (SSOT).
  */
 
 export const fishLanguageConfig: monaco.languages.ILanguageExtensionPoint = {
@@ -16,76 +20,10 @@ export const fishMonarchLanguage: monaco.languages.IMonarchLanguage = {
   defaultToken: '',
   tokenPostfix: '.fish',
   
-  // Fish-specific keywords and control structures
-  keywords: [
-    'function', 'end', 'if', 'else', 'switch', 'case', 'for', 'in', 'while',
-    'begin', 'break', 'continue', 'return', 'and', 'or', 'not', 'builtin',
-    'command', 'eval', 'exec', 'time'
-  ],
-  
-  // Fish built-in commands
-  builtins: [
-    // Variable and environment
-    'set', 'set_color', 'read', 'export', 'path',
-    
-    // Functions
-    'functions', 'funced', 'funcsave', 'source',
-    
-    // Completions and abbreviations
-    'complete', 'abbr',
-    
-    // Key bindings and command line
-    'bind', 'commandline', 'fish_key_reader',
-    
-    // String and list operations
-    'string', 'contains', 'count', 'argparse',
-    
-    // Math and random
-    'math', 'random',
-    
-    // Status and type
-    'status', 'type', 'isatty',
-    
-    // IO
-    'echo', 'printf', 'test',
-    
-    // Job control
-    'bg', 'fg', 'jobs', 'disown', 'wait',
-    
-    // History
-    'history',
-    
-    // Directory navigation
-    'cd', 'pushd', 'popd', 'dirs', 'prevd', 'nextd', 'pwd',
-    
-    // Help and documentation
-    'help', 'apropos', 'man',
-    
-    // Fish specific
-    'fish', 'fish_add_path', 'fish_config', 'fish_indent', 'fish_prompt',
-    'fish_right_prompt', 'fish_mode_prompt', 'fish_greeting', 'fish_update_completions',
-    
-    // Process
-    'kill', 'killall', 'pgrep', 'pkill', 'ps',
-    
-    // File operations
-    'ls', 'cat', 'cp', 'mv', 'rm', 'mkdir', 'rmdir', 'touch', 'chmod', 'chown',
-    
-    // Text processing
-    'grep', 'sed', 'awk', 'cut', 'sort', 'uniq', 'head', 'tail', 'wc', 'tr',
-    
-    // Other common commands
-    'find', 'which', 'whereis', 'file', 'realpath', 'basename', 'dirname'
-  ],
-  
-  // Test operators (used with 'test' or '[')
-  testOperators: [
-    '-a', '-b', '-c', '-d', '-e', '-f', '-g', '-h', '-k', '-p', '-r', '-s',
-    '-t', '-u', '-w', '-x', '-L', '-O', '-G', '-N', '-S',
-    '-eq', '-ne', '-lt', '-le', '-gt', '-ge',
-    '-nt', '-ot', '-ef',
-    '-z', '-n'
-  ],
+  // Import from SSOT (languageDefinitions.ts)
+  keywords: fishDefinition.keywords,
+  builtins: fishDefinition.builtins,
+  testOperators: fishDefinition.testOperators,
   
   symbols: /[=><!~?:&|+\-*\/\^%]+/,
   

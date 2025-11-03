@@ -40,26 +40,16 @@ export const FragmentEditor: React.FC<FragmentEditorProps> = ({
     return sections.used[0] || "";
   };
 
-  const [selectedLanguage, setSelectedLanguage] = useState(() => {
-    return fragment.language || getMostUsedLanguage();
-  });
-
+  // Initialize language on mount only if fragment doesn't have one
   useEffect(() => {
-    if (selectedLanguage && selectedLanguage !== fragment.language) {
-      onUpdate({
-        ...fragment,
-        language: selectedLanguage,
-      });
-    }
-  }, [selectedLanguage, fragment, onUpdate]);
-
-  // Ensure the fragment language is set on mount if it's empty
-  useEffect(() => {
-    if (!fragment.language && selectedLanguage) {
-      onUpdate({
-        ...fragment,
-        language: selectedLanguage,
-      });
+    if (!fragment.language) {
+      const defaultLang = getMostUsedLanguage();
+      if (defaultLang) {
+        onUpdate({
+          ...fragment,
+          language: defaultLang,
+        });
+      }
     }
   }, []); // Empty dependency array to run only on mount
 
@@ -78,7 +68,6 @@ export const FragmentEditor: React.FC<FragmentEditorProps> = ({
   };
 
   const handleLanguageChange = (newLanguage: string) => {
-    setSelectedLanguage(newLanguage);
     onUpdate({
       ...fragment,
       language: newLanguage,
@@ -123,7 +112,7 @@ export const FragmentEditor: React.FC<FragmentEditorProps> = ({
 
           <div className="w-2/3">
             <BaseDropdown
-              value={fragment.language || selectedLanguage}
+              value={fragment.language || ""}
               onChange={handleLanguageChange}
               onSelect={handleLanguageChange}
               getSections={(searchTerm) => {
