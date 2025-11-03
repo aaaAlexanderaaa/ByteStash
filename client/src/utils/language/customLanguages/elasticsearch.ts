@@ -1,8 +1,12 @@
 import * as monaco from 'monaco-editor';
+import { esqlDefinition } from './languageDefinitions';
 
 /**
  * Elasticsearch Query Language (ES|QL) syntax highlighting
  * Provides syntax highlighting for Elasticsearch query DSL and ES|QL
+ * 
+ * NOTE: Language definitions (keywords, functions, etc.) are imported from
+ * languageDefinitions.ts to maintain a Single Source of Truth (SSOT).
  */
 
 export const elasticsearchLanguageConfig: monaco.languages.ILanguageExtensionPoint = {
@@ -16,73 +20,12 @@ export const elasticsearchMonarchLanguage: monaco.languages.IMonarchLanguage = {
   tokenPostfix: '.esql',
   ignoreCase: false,
   
-  // ES|QL commands
-  keywords: [
-    'FROM', 'WHERE', 'LIMIT', 'SORT', 'STATS', 'BY', 'AS',
-    'KEEP', 'DROP', 'RENAME', 'EVAL', 'ROW', 'SHOW', 'ENRICH',
-    'DISSECT', 'GROK', 'MV_EXPAND', 'INLINESTATS', 'LOOKUP',
-    'WITH', 'METADATA', 'INFO', 'FUNCTIONS', 'ASC', 'DESC',
-    'NULLS', 'FIRST', 'LAST'
-  ],
-  
-  // Data types
-  typeKeywords: [
-    'boolean', 'byte', 'short', 'integer', 'long', 'unsigned_long',
-    'float', 'double', 'half_float', 'scaled_float',
-    'keyword', 'text', 'date', 'date_nanos', 'ip', 'version',
-    'binary', 'geo_point', 'geo_shape', 'point', 'shape',
-    'null'
-  ],
-  
-  // Logical operators
-  operators: [
-    'AND', 'OR', 'NOT', 'IN', 'LIKE', 'RLIKE', 'IS', 'IS NOT',
-    '==', '!=', '<', '>', '<=', '>=', '=~', '!~'
-  ],
-
-  // Functions
-  functions: [
-    // Aggregate functions
-    'AVG', 'COUNT', 'COUNT_DISTINCT', 'MAX', 'MIN', 'SUM', 'MEDIAN',
-    'PERCENTILE', 'VALUES', 'TOP', 'WEIGHTED_AVG',
-    
-    // String functions
-    'CONCAT', 'LEFT', 'RIGHT', 'LENGTH', 'LOCATE', 'LTRIM', 'RTRIM', 'TRIM',
-    'REPLACE', 'SUBSTRING', 'UPPER', 'LOWER', 'STARTS_WITH', 'ENDS_WITH',
-    'SPLIT', 'REVERSE',
-    
-    // Type conversion functions
-    'TO_STRING', 'TO_BOOLEAN', 'TO_CARTESIANPOINT', 'TO_DATETIME',
-    'TO_DEGREES', 'TO_DOUBLE', 'TO_GEOPOINT', 'TO_GEOSHAPE', 'TO_INTEGER',
-    'TO_IP', 'TO_LONG', 'TO_RADIANS', 'TO_UNSIGNED_LONG', 'TO_VERSION',
-    
-    // Date functions
-    'NOW', 'DATE_EXTRACT', 'DATE_FORMAT', 'DATE_PARSE', 'DATE_TRUNC',
-    'DATEPART', 'AUTO_BUCKET',
-    
-    // Math functions
-    'ABS', 'ACOS', 'ASIN', 'ATAN', 'ATAN2', 'CBRT', 'CEIL', 'COS', 'COSH',
-    'E', 'EXP', 'FLOOR', 'LOG', 'LOG10', 'PI', 'POW', 'ROUND', 'SIGNUM',
-    'SIN', 'SINH', 'SQRT', 'TAN', 'TANH', 'TAU',
-    
-    // Conditional functions
-    'CASE', 'COALESCE', 'GREATEST', 'LEAST', 'NULLIF',
-    
-    // IP functions
-    'CIDR_MATCH',
-    
-    // Multi-value functions
-    'MV_AVG', 'MV_CONCAT', 'MV_COUNT', 'MV_DEDUPE', 'MV_FIRST', 'MV_LAST',
-    'MV_MAX', 'MV_MEDIAN', 'MV_MIN', 'MV_SORT', 'MV_SLICE', 'MV_SUM', 'MV_ZIP',
-    
-    // Other functions
-    'LENGTH', 'BUCKET', 'IS_FINITE', 'IS_INFINITE', 'IS_NAN'
-  ],
-  
-  // Constants
-  constants: [
-    'true', 'false', 'null', 'NULL', 'TRUE', 'FALSE'
-  ],
+  // Import from SSOT (languageDefinitions.ts)
+  keywords: esqlDefinition.keywords,
+  typeKeywords: esqlDefinition.typeKeywords,
+  operators: [...esqlDefinition.operators, '==', '!=', '<', '>', '<=', '>=', '=~', '!~'],
+  functions: esqlDefinition.functions,
+  constants: esqlDefinition.constants,
   
   symbols: /[=><!~?:&|+\-*\/\^%]+/,
   

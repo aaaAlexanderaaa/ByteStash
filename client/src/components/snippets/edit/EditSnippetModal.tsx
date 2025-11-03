@@ -35,8 +35,14 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
   const [categoryInput, setCategoryInput] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isPublic, setIsPublic] = useState(snippetToEdit?.is_public || false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isPublic, setIsPublic] = useState(!!snippetToEdit?.is_public);
+  const [initialData, setInitialData] = useState<{
+    title: string;
+    description: string;
+    fragments: CodeFragment[];
+    categories: string[];
+    isPublic: boolean;
+  } | null>(null);
 
   const resetForm = () => {
     setTitle("");
@@ -52,19 +58,55 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
     setCategories([]);
     setError("");
     setCategoryInput("");
-    setHasUnsavedChanges(false);
+    setInitialData(null);
+  };
+
+  // Function to check if there are real changes
+  const hasRealChanges = () => {
+    if (!initialData) {
+      // For new snippets, check if any content has been added
+      return title.trim() !== "" || 
+             description.trim() !== "" || 
+             fragments.some(f => f.code.trim() !== "" || f.file_name !== "main") ||
+             categories.length > 0;
+    }
+    
+    // For existing snippets, compare with initial data
+    return (
+      title !== initialData.title ||
+      description !== initialData.description ||
+      isPublic !== initialData.isPublic ||
+      JSON.stringify(categories) !== JSON.stringify(initialData.categories) ||
+      JSON.stringify(fragments) !== JSON.stringify(initialData.fragments)
+    );
   };
 
   useEffect(() => {
     if (isOpen) {
       if (snippetToEdit) {
-        setTitle(snippetToEdit.title?.slice(0, 255) || "");
-        setDescription(snippetToEdit.description || "");
-        setFragments(JSON.parse(JSON.stringify(snippetToEdit.fragments || [])));
-        setCategories(snippetToEdit.categories || []);
-        setIsPublic(snippetToEdit.is_public || false);
+        const title = snippetToEdit.title?.slice(0, 255) || "";
+        const description = snippetToEdit.description || "";
+        const fragments = JSON.parse(JSON.stringify(snippetToEdit.fragments || []));
+        const categories = snippetToEdit.categories || [];
+        const isPublic = !!snippetToEdit.is_public;
+        
+        setTitle(title);
+        setDescription(description);
+        setFragments(fragments);
+        setCategories(categories);
+        setIsPublic(isPublic);
+        
+        // Store initial data for comparison
+        setInitialData({
+          title,
+          description,
+          fragments,
+          categories,
+          isPublic,
+        });
       } else {
         resetForm();
+        setInitialData(null);
       }
     }
   }, [isOpen, snippetToEdit]);
@@ -83,7 +125,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
       !categories.includes(normalizedCategory)
     ) {
       setCategories((prev) => [...prev, normalizedCategory]);
-      setHasUnsavedChanges(true);
     }
     setCategoryInput("");
   };
@@ -91,7 +132,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
   const handleRemoveCategory = (e: React.MouseEvent, category: string) => {
     e.preventDefault();
     setCategories((cats) => cats.filter((c) => c !== category));
-    setHasUnsavedChanges(true);
   };
 
   const handleAddFragment = () => {
@@ -104,7 +144,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
         position: current.length,
       },
     ]);
-    setHasUnsavedChanges(true);
   };
 
   const handleFileUpload = (fileData: {
@@ -120,7 +159,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
         position: current.length,
       },
     ]);
-    setHasUnsavedChanges(true);
   };
 
   const handleUploadError = (error: string) => {
@@ -140,13 +178,11 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
       newFragments[index] = updatedFragment;
       return newFragments;
     });
-    setHasUnsavedChanges(true);
   };
 
   const handleDeleteFragment = (index: number) => {
     if (fragments.length > 1) {
       setFragments((current) => current.filter((_, i) => i !== index));
-      setHasUnsavedChanges(true);
     }
   };
 
@@ -164,7 +200,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
         position: index,
       }));
     });
-    setHasUnsavedChanges(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -194,7 +229,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
 
     try {
       await onSubmit(snippetData);
-      setHasUnsavedChanges(false);
       onClose();
     } catch (error) {
       setError("An error occurred while saving the snippet. Please try again.");
@@ -205,9 +239,9 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
   };
 
   const handleModalClose = () => {
-    if (hasUnsavedChanges) {
+    if (hasRealChanges()) {
       const confirmClose = window.confirm(
-        "You have unsaved changes. Are you sure you want to close?"
+        "You have unsaved changes. Do you want to discard them?"
       );
       if (!confirmClose) return;
     }
@@ -289,7 +323,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
                   value={title}
                   onChange={(e) => {
                     setTitle(e.target.value.slice(0, 100));
-                    setHasUnsavedChanges(true);
                   }}
                   className="block w-full p-2 mt-1 text-sm border rounded-md bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text border-light-border dark:border-dark-border focus:ring-2 focus:ring-light-primary dark:focus:ring-dark-primary focus:border-light-primary dark:focus:border-dark-primary"
                   required
@@ -314,7 +347,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
                   value={description}
                   onChange={(e) => {
                     setDescription(e.target.value);
-                    setHasUnsavedChanges(true);
                   }}
                   className="block w-full p-2 mt-1 text-sm border rounded-md bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text border-light-border dark:border-dark-border focus:ring-2 focus:ring-light-primary dark:focus:ring-dark-primary focus:border-light-primary dark:focus:border-dark-primary"
                   rows={3}
@@ -361,7 +393,6 @@ const EditSnippetModal: React.FC<EditSnippetModalProps> = ({
                     checked={!!isPublic}
                     onChange={(checked) => {
                       setIsPublic(checked);
-                      setHasUnsavedChanges(true);
                     }}
                   />
                   <span className="text-sm font-medium text-light-text dark:text-dark-text">

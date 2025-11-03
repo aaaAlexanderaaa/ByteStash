@@ -563,14 +563,29 @@ export const getMonacoLanguage = (lang: string): string => {
 };
 
 /**
+ * Check if a language is a custom language that requires CustomSyntaxHighlighter.
+ * Custom languages (spl, esql, fish) have their own regex-based highlighter
+ * because Prism.js doesn't support them natively.
+ */
+export const isCustomLanguage = (lang: string): lang is 'spl' | 'esql' | 'fish' => {
+  const normalized = getMonacoLanguage(lang);
+  return ['spl', 'esql', 'fish'].includes(normalized);
+};
+
+/**
  * Get the appropriate Prism language for syntax highlighting in view mode.
- * Custom Monaco languages (spl, esql, fish) need to map to similar Prism languages
- * since Prism doesn't support these custom language definitions.
+ * 
+ * NOTE: This is now deprecated for custom languages (spl, esql, fish).
+ * Use isCustomLanguage() to detect custom languages and render with
+ * CustomSyntaxHighlighter instead.
+ * 
+ * This fallback mapping is kept only for backward compatibility and
+ * will only be used if CustomSyntaxHighlighter fails to render.
  */
 export const getPrismLanguage = (lang: string): string => {
   const monacoLang = getMonacoLanguage(lang);
   
-  // Map custom Monaco languages to appropriate Prism fallbacks
+  // Map custom Monaco languages to appropriate Prism fallbacks (deprecated)
   const customLanguageMap: Record<string, string> = {
     'spl': 'javascript',        // Splunk SPL -> JavaScript (similar syntax structure)
     'esql': 'sql',              // Elasticsearch -> SQL (query language)
